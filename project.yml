@@ -130,7 +130,40 @@ spec:
   selector:
     app: test-backend
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-front-end-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: front-end
+  template:
+    metadata:
+      labels:
+        app: front-end
+    spec:
 
+      containers:
+        - name: test-frontend-container
+          image: marechalocelot/basic-front-end:latest
+          imagePullPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-frontend-service
+spec:
+  ports:
+    - name: http
+      targetPort: 80
+      port: 80
+  type: ClusterIP
+  selector:
+    app: front-end
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -146,5 +179,15 @@ spec:
             backend:
               service:
                 name: test-backend-service
+                port:
+                  number: 80
+    - host: front-end.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: test-frontend-service
                 port:
                   number: 80
